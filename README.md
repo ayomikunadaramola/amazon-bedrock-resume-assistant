@@ -1,8 +1,4 @@
 <p align="center">
-  <img src="docs/images/banner.png" alt="Amazon Bedrock AI Resume Assistant" width="100%">
-</p>
-
-<p align="center">
   <img src="docs/images/banner.png" alt="Amazon Bedrock AI Resume Assistant Banner" width="100%">
 </p>
 
