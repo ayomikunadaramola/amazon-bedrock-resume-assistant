@@ -1,4 +1,12 @@
+"""
+Resume Assistant
+"""
+
 from __future__ import annotations
+
+import os
+
+from resume_analyzer import analyze_resume
 
 from config import MOCK_MODE
 
@@ -269,13 +277,13 @@ Question:
 
 def analyze_resume_pdf() -> None:
     """
-    Validate a résumé PDF, extract its text, and display
-    basic document statistics and a text preview.
+    Validate a résumé PDF, extract its text,
+    analyze résumé quality, and display a structured report.
     """
 
-    print("\n" + "-" * 57)
-    print(" RÉSUMÉ PDF ANALYSIS")
-    print("-" * 57)
+    print("\n" + "=" * 57)
+    print(" FULL RÉSUMÉ ANALYSIS")
+    print("=" * 57)
 
     file_path = get_non_empty_input(
         "\nEnter the path to the résumé PDF:\n> "
@@ -287,20 +295,24 @@ def analyze_resume_pdf() -> None:
 
     try:
         summary = get_pdf_summary(file_path)
-
         resume_text = extract_text_from_pdf(file_path)
+        analysis = analyze_resume(resume_text)
 
     except PDFProcessingError as error:
         print(f"\nPDF processing error: {error}")
         return
 
-    except Exception as error:
-        print(f"\nUnexpected error while processing PDF: {error}")
+    except ValueError as error:
+        print(f"\nRésumé analysis error: {error}")
         return
 
-    print("\nRésumé PDF processed successfully.\n")
+    except Exception as error:
+        print(f"\nUnexpected error: {error}")
+        return
 
-    print("-" * 57)
+    print("\nRésumé PDF processed successfully.")
+
+    print("\n" + "-" * 57)
     print(" DOCUMENT INFORMATION")
     print("-" * 57)
 
@@ -310,23 +322,126 @@ def analyze_resume_pdf() -> None:
     print(f"Characters  : {summary['character_count']}")
 
     print("\n" + "-" * 57)
+    print(" ATS / RÉSUMÉ SCORES")
+    print("-" * 57)
+
+    print(f"Overall Score       : {analysis.overall_score}/100")
+    print(f"ATS Readiness       : {analysis.ats_score}/100")
+    print(f"Section Completeness: {analysis.section_score}/100")
+    print(f"Impact & Metrics    : {analysis.impact_score}/100")
+    print(f"Technical Skills    : {analysis.skills_score}/100")
+
+    print("\n" + "-" * 57)
+    print(" SECTIONS DETECTED")
+    print("-" * 57)
+
+    for section, detected in analysis.detected_sections.items():
+        symbol = "✓" if detected else "✗"
+        print(f"{symbol} {section.title()}")
+
+    print("\n" + "-" * 57)
+    print(" TECHNICAL SKILLS DETECTED")
+    print("-" * 57)
+
+    if analysis.technical_skills:
+        for skill in analysis.technical_skills:
+            print(f"• {skill}")
+    else:
+        print("No known technical skills detected.")
+
+    print("\n" + "-" * 57)
+    print(" IMPACT ANALYSIS")
+    print("-" * 57)
+
+    print(
+        f"Quantified achievements detected: "
+        f"{analysis.metric_count}"
+    )
+
+    if analysis.strong_action_verbs:
+        print(
+            "\nStrong action verbs:\n"
+            + ", ".join(analysis.strong_action_verbs)
+        )
+    else:
+        print("\nNo strong action verbs detected.")
+
+    if analysis.weak_phrases:
+        print(
+            "\nWeak phrases detected:\n"
+            + ", ".join(analysis.weak_phrases)
+        )
+    else:
+        print("\nNo weak résumé phrases detected.")
+
+    print("\n" + "-" * 57)
+    print(" PRELIMINARY RECOMMENDATIONS")
+    print("-" * 57)
+
+    recommendations: list[str] = []
+
+    missing_sections = [
+        section.title()
+        for section, detected
+        in analysis.detected_sections.items()
+        if not detected
+    ]
+
+    if missing_sections:
+        recommendations.append(
+            "Consider adding these missing sections: "
+            + ", ".join(missing_sections)
+            + "."
+        )
+
+    if analysis.metric_count < 5:
+        recommendations.append(
+            "Add more measurable achievements using percentages, "
+            "time savings, revenue, scale, cost reduction, "
+            "or performance improvements."
+        )
+
+    if analysis.weak_phrases:
+        recommendations.append(
+            "Replace passive phrases with stronger action-oriented language."
+        )
+
+    if len(analysis.strong_action_verbs) < 5:
+        recommendations.append(
+            "Use a wider range of strong action verbs in experience bullets."
+        )
+
+    if analysis.skills_score < 70:
+        recommendations.append(
+            "Strengthen the technical skills section with relevant tools "
+            "and technologies for the target role."
+        )
+
+    if not recommendations:
+        recommendations.append(
+            "The résumé has a strong baseline. Focus next on tailoring "
+            "keywords and achievements to each target job description."
+        )
+
+    for number, recommendation in enumerate(
+        recommendations,
+        start=1,
+    ):
+        print(f"{number}. {recommendation}")
+
+    print("\n" + "-" * 57)
     print(" EXTRACTED RÉSUMÉ PREVIEW")
     print("-" * 57 + "\n")
 
-    preview_length = 1500
-
+    preview_length = 1200
     print(resume_text[:preview_length])
 
     if len(resume_text) > preview_length:
-        print("\n[Preview truncated after 1,500 characters]")
+        print("\n[Preview truncated]")
 
-    print("\n" + "-" * 57)
-    print(
-        "PDF extraction completed successfully. "
-        "Full AI résumé analysis will be added in the next phase."
-    )
-    print("-" * 57)
-
+    print("\n" + "=" * 57)
+    print(" Analysis completed successfully.")
+    print("=" * 57)
 
 # =========================================================
 # MAIN APPLICATION LOOP

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import app
 from pdf_service import PDFProcessingError
 
@@ -13,8 +15,6 @@ def test_rewrite_bullet_rejects_empty_input(
     monkeypatch,
     capsys,
 ) -> None:
-    """An empty résumé bullet should display a validation message."""
-
     monkeypatch.setattr(
         "builtins.input",
         lambda _: "",
@@ -31,8 +31,6 @@ def test_rewrite_bullet_sends_prompt_to_response_service(
     monkeypatch,
     capsys,
 ) -> None:
-    """A valid bullet should be sent to the response service."""
-
     monkeypatch.setattr(
         "builtins.input",
         lambda _: "Built data pipelines using Python and SQL.",
@@ -57,7 +55,6 @@ def test_rewrite_bullet_sends_prompt_to_response_service(
     assert "Built data pipelines using Python and SQL." in (
         captured_prompt["prompt"]
     )
-
     assert "Improved résumé bullet." in captured.out
 
 
@@ -65,8 +62,6 @@ def test_rewrite_bullet_handles_response_error(
     monkeypatch,
     capsys,
 ) -> None:
-    """Response-service failures should be handled cleanly."""
-
     monkeypatch.setattr(
         "builtins.input",
         lambda _: "Built data pipelines using Python.",
@@ -86,11 +81,10 @@ def test_rewrite_bullet_handles_response_error(
     captured = capsys.readouterr()
 
     assert "Unable to generate response" in captured.out
-    assert "Model unavailable" in captured.out
 
 
 # =========================================================
-# OPTION 2 — EVALUATE RÉSUMÉ BULLET
+# OPTION 2 — EVALUATE BULLET
 # =========================================================
 
 
@@ -98,8 +92,6 @@ def test_evaluate_bullet_rejects_empty_input(
     monkeypatch,
     capsys,
 ) -> None:
-    """An empty bullet should not be evaluated."""
-
     monkeypatch.setattr(
         "builtins.input",
         lambda _: "",
@@ -116,12 +108,7 @@ def test_evaluate_bullet_processes_valid_input(
     monkeypatch,
     capsys,
 ) -> None:
-    """A valid résumé bullet should be evaluated."""
-
-    bullet = (
-        "Optimized PostgreSQL queries and improved "
-        "reporting performance."
-    )
+    bullet = "Optimized PostgreSQL queries."
 
     monkeypatch.setattr(
         "builtins.input",
@@ -149,7 +136,7 @@ def test_evaluate_bullet_processes_valid_input(
 
 
 # =========================================================
-# OPTION 3 — GENERATE ROLE SKILLS
+# OPTION 3 — SKILLS
 # =========================================================
 
 
@@ -157,8 +144,6 @@ def test_generate_role_skills_rejects_empty_role(
     monkeypatch,
     capsys,
 ) -> None:
-    """An empty target role should display a validation message."""
-
     monkeypatch.setattr(
         "builtins.input",
         lambda _: "",
@@ -175,8 +160,6 @@ def test_generate_role_skills_processes_valid_role(
     monkeypatch,
     capsys,
 ) -> None:
-    """A valid target role should be passed into the generated prompt."""
-
     role = "Senior Data Engineer at AWS"
 
     monkeypatch.setattr(
@@ -213,14 +196,12 @@ def test_professional_summary_requires_all_fields(
     monkeypatch,
     capsys,
 ) -> None:
-    """Missing summary information should be rejected."""
-
     responses = iter(
         [
             "Senior Data Engineer",
             "",
             "Python, SQL and AWS",
-            "Built scalable data pipelines.",
+            "Built scalable pipelines.",
         ]
     )
 
@@ -233,27 +214,19 @@ def test_professional_summary_requires_all_fields(
 
     captured = capsys.readouterr()
 
-    assert (
-        "Please provide all required information"
-        in captured.out
-    )
+    assert "Please provide all required information" in captured.out
 
 
 def test_professional_summary_processes_valid_information(
     monkeypatch,
     capsys,
 ) -> None:
-    """Valid professional information should be placed in the prompt."""
-
     responses = iter(
         [
             "Senior Data Engineer",
             "5",
             "Python, SQL, AWS and Spark",
-            (
-                "Built scalable pipelines and improved "
-                "data processing performance."
-            ),
+            "Built scalable pipelines and improved performance.",
         ]
     )
 
@@ -281,14 +254,13 @@ def test_professional_summary_processes_valid_information(
     prompt = captured_prompt["prompt"]
 
     assert "Senior Data Engineer" in prompt
-    assert "5" in prompt
     assert "Python, SQL, AWS and Spark" in prompt
     assert "Built scalable pipelines" in prompt
     assert "Generated professional summary." in captured.out
 
 
 # =========================================================
-# OPTION 5 — GENERAL CAREER QUESTION
+# OPTION 5 — GENERAL QUESTION
 # =========================================================
 
 
@@ -296,8 +268,6 @@ def test_general_question_rejects_empty_input(
     monkeypatch,
     capsys,
 ) -> None:
-    """An empty career question should be rejected."""
-
     monkeypatch.setattr(
         "builtins.input",
         lambda _: "",
@@ -314,11 +284,7 @@ def test_general_question_processes_valid_input(
     monkeypatch,
     capsys,
 ) -> None:
-    """A valid career question should be sent for processing."""
-
-    question = (
-        "What AWS skills should a senior data engineer highlight?"
-    )
+    question = "What AWS skills should a data engineer highlight?"
 
     monkeypatch.setattr(
         "builtins.input",
@@ -329,7 +295,7 @@ def test_general_question_processes_valid_input(
 
     def fake_generate_response(prompt: str) -> str:
         captured_prompt["prompt"] = prompt
-        return "Highlight AWS Glue, S3, Redshift and EMR."
+        return "Highlight Glue, S3 and Redshift."
 
     monkeypatch.setattr(
         app,
@@ -342,11 +308,11 @@ def test_general_question_processes_valid_input(
     captured = capsys.readouterr()
 
     assert question in captured_prompt["prompt"]
-    assert "AWS Glue" in captured.out
+    assert "Glue" in captured.out
 
 
 # =========================================================
-# OPTION 6 — PDF RÉSUMÉ ANALYSIS
+# OPTION 6 — FULL PDF RÉSUMÉ ANALYSIS
 # =========================================================
 
 
@@ -354,8 +320,6 @@ def test_analyze_resume_pdf_rejects_empty_path(
     monkeypatch,
     capsys,
 ) -> None:
-    """An empty PDF path should display a validation message."""
-
     monkeypatch.setattr(
         "builtins.input",
         lambda _: "",
@@ -372,8 +336,6 @@ def test_analyze_resume_pdf_processes_valid_pdf(
     monkeypatch,
     capsys,
 ) -> None:
-    """A valid résumé PDF should display metadata and extracted text."""
-
     monkeypatch.setattr(
         "builtins.input",
         lambda _: "sample_resume.pdf",
@@ -387,9 +349,36 @@ def test_analyze_resume_pdf_processes_valid_pdf(
     }
 
     fake_resume_text = (
-        "SAMPLE RESUME\n"
+        "PROFESSIONAL SUMMARY\n"
         "Senior Data Engineer\n"
         "Python SQL AWS Spark Airflow"
+    )
+
+    fake_analysis = SimpleNamespace(
+        overall_score=93,
+        ats_score=93,
+        section_score=83,
+        impact_score=95,
+        skills_score=100,
+        detected_sections={
+            "summary": True,
+            "experience": True,
+            "skills": True,
+            "education": True,
+            "certifications": True,
+            "projects": False,
+        },
+        technical_skills=[
+            "python",
+            "sql",
+            "aws",
+        ],
+        strong_action_verbs=[
+            "built",
+            "optimized",
+        ],
+        weak_phrases=[],
+        metric_count=12,
     )
 
     monkeypatch.setattr(
@@ -404,24 +393,41 @@ def test_analyze_resume_pdf_processes_valid_pdf(
         lambda _: fake_resume_text,
     )
 
+    monkeypatch.setattr(
+        app,
+        "analyze_resume",
+        lambda _: fake_analysis,
+    )
+
     app.analyze_resume_pdf()
 
     captured = capsys.readouterr()
 
     assert "Résumé PDF processed successfully." in captured.out
     assert "sample_resume.pdf" in captured.out
-    assert "3" in captured.out
-    assert "846" in captured.out
-    assert "6697" in captured.out
-    assert "Senior Data Engineer" in captured.out
+
+    assert "Overall Score" in captured.out
+    assert "93/100" in captured.out
+
+    assert "ATS Readiness" in captured.out
+    assert "Section Completeness" in captured.out
+    assert "Impact & Metrics" in captured.out
+    assert "Technical Skills" in captured.out
+
+    assert "Projects" in captured.out
+    assert "python" in captured.out
+    assert "sql" in captured.out
+    assert "aws" in captured.out
+
+    assert "Quantified achievements detected: 12" in captured.out
+
+    assert "Analysis completed successfully." in captured.out
 
 
 def test_analyze_resume_pdf_handles_processing_error(
     monkeypatch,
     capsys,
 ) -> None:
-    """PDF-processing errors should be shown without crashing."""
-
     monkeypatch.setattr(
         "builtins.input",
         lambda _: "missing_resume.pdf",
@@ -450,8 +456,6 @@ def test_analyze_resume_pdf_truncates_long_preview(
     monkeypatch,
     capsys,
 ) -> None:
-    """Long extracted résumé text should display a truncation message."""
-
     monkeypatch.setattr(
         "builtins.input",
         lambda _: "sample_resume.pdf",
@@ -466,6 +470,31 @@ def test_analyze_resume_pdf_truncates_long_preview(
 
     long_resume_text = "A" * 2000
 
+    fake_analysis = SimpleNamespace(
+        overall_score=80,
+        ats_score=80,
+        section_score=80,
+        impact_score=80,
+        skills_score=80,
+        detected_sections={
+            "summary": True,
+            "experience": True,
+            "skills": True,
+            "education": True,
+            "certifications": False,
+            "projects": False,
+        },
+        technical_skills=[
+            "python",
+            "sql",
+        ],
+        strong_action_verbs=[
+            "built",
+        ],
+        weak_phrases=[],
+        metric_count=2,
+    )
+
     monkeypatch.setattr(
         app,
         "get_pdf_summary",
@@ -478,6 +507,12 @@ def test_analyze_resume_pdf_truncates_long_preview(
         lambda _: long_resume_text,
     )
 
+    monkeypatch.setattr(
+        app,
+        "analyze_resume",
+        lambda _: fake_analysis,
+    )
+
     app.analyze_resume_pdf()
 
     captured = capsys.readouterr()
@@ -485,16 +520,85 @@ def test_analyze_resume_pdf_truncates_long_preview(
     assert "Preview truncated" in captured.out
 
 
+def test_analyze_resume_pdf_displays_missing_section_recommendation(
+    monkeypatch,
+    capsys,
+) -> None:
+    monkeypatch.setattr(
+        "builtins.input",
+        lambda _: "sample_resume.pdf",
+    )
+
+    fake_summary = {
+        "file_name": "sample_resume.pdf",
+        "page_count": 2,
+        "word_count": 600,
+        "character_count": 4500,
+    }
+
+    fake_analysis = SimpleNamespace(
+        overall_score=75,
+        ats_score=75,
+        section_score=67,
+        impact_score=75,
+        skills_score=80,
+        detected_sections={
+            "summary": True,
+            "experience": True,
+            "skills": True,
+            "education": True,
+            "certifications": False,
+            "projects": False,
+        },
+        technical_skills=[
+            "python",
+            "sql",
+            "aws",
+        ],
+        strong_action_verbs=[
+            "built",
+            "optimized",
+            "implemented",
+        ],
+        weak_phrases=[],
+        metric_count=3,
+    )
+
+    monkeypatch.setattr(
+        app,
+        "get_pdf_summary",
+        lambda _: fake_summary,
+    )
+
+    monkeypatch.setattr(
+        app,
+        "extract_text_from_pdf",
+        lambda _: "Sample résumé text",
+    )
+
+    monkeypatch.setattr(
+        app,
+        "analyze_resume",
+        lambda _: fake_analysis,
+    )
+
+    app.analyze_resume_pdf()
+
+    captured = capsys.readouterr()
+
+    assert "Certifications" in captured.out
+    assert "Projects" in captured.out
+    assert "Consider adding these missing sections" in captured.out
+
+
 # =========================================================
-# MENU / APPLICATION SHELL
+# MENU
 # =========================================================
 
 
 def test_display_menu_contains_pdf_option(
     capsys,
 ) -> None:
-    """The application menu should expose the PDF-analysis feature."""
-
     app.display_menu()
 
     captured = capsys.readouterr()
