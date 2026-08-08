@@ -77,3 +77,90 @@ Requirements:
 - Make it ATS-friendly.
 - Do not invent employers, certifications, projects or metrics.
 """.strip()
+
+def build_full_resume_review_prompt(
+    resume_text: str,
+    analysis_summary: str,
+) -> str:
+    """
+    Build a prompt for a qualitative recruiter-style résumé review.
+    """
+
+    return f"""
+You are an expert technical recruiter and professional résumé writer
+specializing in data engineering, cloud engineering, and AI roles.
+
+Review the résumé below using the deterministic analysis provided.
+
+Do not invent experience, skills, metrics, employers, certifications,
+or achievements that are not present in the résumé.
+
+Provide your response using exactly these sections:
+
+STRENGTHS
+- Identify the strongest parts of the résumé.
+
+WEAKNESSES
+- Identify specific weaknesses that may reduce recruiter or ATS performance.
+
+PRIORITY IMPROVEMENTS
+- Give the 3 to 5 most important improvements in priority order.
+
+RECRUITER VERDICT
+- Give a concise recruiter-style assessment of the résumé.
+
+DETERMINISTIC ANALYSIS:
+{analysis_summary}
+
+RÉSUMÉ:
+{resume_text}
+""".strip()
+
+def build_job_match_review_prompt(
+    resume_text: str,
+    job_description: str,
+    match_summary: str,
+) -> str:
+    """
+    Build a prompt for recruiter-style résumé-to-job analysis.
+    """
+
+    return f"""
+You are an expert technical recruiter reviewing a candidate
+for a specific job opening.
+
+Compare the résumé with the job description using the supplied
+deterministic match results.
+
+Important rules:
+
+1. Do not claim the candidate has a skill unless it appears in the résumé.
+2. Do not recommend falsely adding missing skills.
+3. Missing skills should only be added if the candidate genuinely has
+   relevant experience with them.
+4. Focus on ATS alignment, recruiter appeal, demonstrated impact,
+   technical relevance, and role fit.
+
+Return exactly these sections:
+
+MATCH STRENGTHS
+- Explain where the candidate aligns well.
+
+MATCH GAPS
+- Explain the most important gaps.
+
+TAILORING PRIORITIES
+- Give the most important résumé changes for this application.
+
+APPLICATION VERDICT
+- Rate the fit as Strong, Good, Moderate, or Low and briefly explain why.
+
+MATCH ANALYSIS:
+{match_summary}
+
+JOB DESCRIPTION:
+{job_description}
+
+RÉSUMÉ:
+{resume_text}
+""".strip()

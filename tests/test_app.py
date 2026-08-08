@@ -595,7 +595,6 @@ def test_analyze_resume_pdf_displays_missing_section_recommendation(
 # MENU
 # =========================================================
 
-
 def test_display_menu_contains_pdf_option(
     capsys,
 ) -> None:
@@ -604,4 +603,5 @@ def test_display_menu_contains_pdf_option(
     captured = capsys.readouterr()
 
     assert "6. Analyze a résumé PDF" in captured.out
-    assert "7. Exit" in captured.out
+    assert "7. Match résumé to a job description" in captured.out
+    assert "8. Exit" in captured.out
